@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Search</title>
+  <style>
+    .headerBg {
+      background-color: #DAE3ED;
+      height: 80px;
+    }
+
+    .headerInput {
+      padding: 20px;
+    }
+
+    input[type="text"] {
+      height: 30px;
+      border-color: black;
+      border-radius: 7px;
+      background-color: #F4F7FB;
+    }
+
+    input[type="button"] {
+      height: 34px;
+      border-radius: 7px;
+      border-color: black;
+      background-color: #F4F7FB;
+    }
+
+    .groupTotal {
+      padding-left: 5px;
+    }
+
+    .results {
+      margin-left: 10px;
+      margin-top: -5px;
+      display: block;
+      float: left;
+      height: auto;
+      width: 50%;
+      box-shadow: 0.5px 0.5px 2px 0px #000;
+      display: none;
+      background-color: white;
+    }
+
+    .group {
+      margin: 5px;
+      display: block;
+      height: auto;
+      width: auto;
+      color: #2F4D68;
+    }
+
+    .item {
+      margin: 5px;
+      display: inline-block;
+      width: 45%;
+      height: 50px;
+      box-sizing: border-box;
+      vertical-align: top;
+      color: #2F4D68;
+    }
+
+    .title {
+      font-size: 15px;
+    }
+
+    .image {
+      width: 50px;
+      height: 50px;
+      float: left;
+      margin-right: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Hybrid Search</h2>
+  <div class="headerBg">
+    <div class="headerInput">
+      <input type="text" id="keyword" />
+      <input type="button" value="Search" id="searchBtn" />
+    </div>
+  </div>
+  <div id="results">
+  </div>
+
+
+  <script type="text/javascript">
+    const items = [
+      { id: 1, image: "https://images.folloze.com/image/upload/v1450949154/folloze-image-gallery/campaign/heroimage01.png", title: "Space Mobile The Final Frontier" },
+      { id: 2, image: "https://images.folloze.com/image/upload/v1450949153/folloze-image-gallery/campaign/heroimage13.png", title: "What if They Let You Run The Hubble Mobile" },
+      { id: 3, image: "https://images.folloze.com/image/upload/v1450949153/folloze-image-gallery/campaign/heroimage04.png", title: "Shooting Stars Mobile" },
+      { id: 4, image: "https://images.folloze.com/image/upload/v1450949149/folloze-image-gallery/campaign/heroimage11.png", title: "Make Money Online Through Advertising" },
+      { id: 5, image: "https://images.folloze.com/image/upload/v1450949143/folloze-image-gallery/campaign/heroimage08.png", title: "What Makes Flyers Unrivaled" },
+      { id: 6, image: "https://images.folloze.com/image/upload/v1450948643/folloze-image-gallery/campaign/heroimage05.png", title: "Adwords Keywork Research For Beginners" }
+    ];
+
+    const boards = [
+      { id: 1, image: "https://images.folloze.com/image/upload/v1458832608/folloze-image-gallery/customer/customer_03.png", title: "The Baiscs Of Buying A Telescope Mobile" },
+      { id: 2, image: "https://images.folloze.com/image/upload/v1450949395/folloze-image-gallery/customer/customer_02.png", title: "The Universe Through A Child Eyes Mobile" },
+      { id: 3, image: "https://images.folloze.com/image/upload/v1450949032/folloze-image-gallery/customer/customer_04.png", title: "Home Business Advertising Ideas Mobile" },
+      { id: 4, image: "https://images.folloze.com/image/upload/v1450949131/folloze-image-gallery/group/group_01.png", title: "Finally A Top Mobile Way You Can Google Adwords Pay Per Clicks" },
+      { id: 5, image: "https://images.folloze.com/image/upload/v1450949052/folloze-image-gallery/group/group_02.png", title: "Study 800 Numbers Still Popula With Advertisers Mobile" },
+      { id: 6, image: "https://images.folloze.com/image/upload/v1450948179/folloze-image-gallery/generic/generic_06.png", title: "Using Banner Stands To Increase Trade Show Traffic" }
+    ];
+
+    (function (searchBtnElementId, keywordElementId, resultsElementId, resourcesArr) {
+
+      let keyword;
+
+      handleSearchClick();
+
+      const getKeyword = () => {
+        let value = document.getElementById(keywordElementId).value;
+        if (value.trim() !== '') {
+          return value;
+        }
+        return null;
+      };
+
+      function handleSearchClick() {
+        let el = document.getElementById(searchBtnElementId);
+        el.onclick = () => {
+          keyword = getKeyword();
+          if (keyword != null) {
+            let results = getResults(keyword, resourcesArr);
+            results.then(buildResultsHTML);
+          }
+        };
+      }
+
+      function getResults(keyword, resourcesArr) {
+        return new Promise((resolve, reject) => {
+          let results = [];
+          resourcesArr.forEach(resource => {
+            resource.data.forEach(item => {
+              if (item.title.includes(keyword)) {
+                let index = results.findIndex(x => x.name == resource.name)
+                if (index !== -1) {
+                  results[index].data.push(item);
+                }
+                else {
+                  results.push({ name: resource.name, data: [item] });
+                }
+              }
+            });
+          });
+
+          if (results.length !== 0)
+            resolve(results);
+        });
+      }
+
+      function buildResultsHTML(results) {
+        var el = document.getElementById(resultsElementId);
+        el.setAttribute("class", "results")
+        el.innerHTML = "";
+        results.forEach(element => {
+          el.appendChild(createGroup(element));
+        });
+
+        initItemsClickEvent();
+
+        el.style.setProperty("display", "block");
+      }
+
+      function createGroup(element) {
+        //group item
+        let group = document.createElement("div");
+        group.setAttribute("class", "group");
+        group.setAttribute("name", element.name);
+
+        // group name item
+        let groupName = document.createElement("span");
+        groupName.innerText = element.name;
+
+        //group total item
+        let groupTotal = document.createElement("span");
+        groupTotal.innerText = `(${element.data.length})`;
+        groupTotal.setAttribute("class", "groupTotal");
+
+        //group images container
+        let groupItems = document.createElement("div");
+
+        group.appendChild(groupName);
+        group.appendChild(groupTotal);
+        group.appendChild(groupItems);
+
+        //create group items
+        element.data.forEach(groupItem => {
+          groupItems.appendChild(createGroupItem(groupItem));
+        });
+
+        return group;
+      }
+
+      function createGroupItem(groupItem) {
+        //result item
+        let item = document.createElement("div");
+        item.setAttribute("class", "item");
+        item.setAttribute("id", groupItem.id);
+
+        //item image
+        let image = document.createElement("img");
+        image.setAttribute("src", groupItem.image);
+        image.setAttribute("class", "image");
+
+        //item title
+        let title = document.createElement("span");
+        title.innerText = groupItem.title;
+        title.setAttribute("class", "title");
+
+        item.appendChild(image);
+        item.appendChild(title);
+
+        return item;
+      }
+
+      function initItemsClickEvent() {
+        const allItems = document.querySelectorAll('.item');
+        allItems.forEach(function (item) {
+          item.addEventListener('click', (event) => {
+            let boardName = event.target.closest(".group").getAttributeNode("name").value;
+            let itemId;
+            if (event.target.nodeName !== "DIV") {
+              itemId = event.target.closest(".item").getAttributeNode("id").value;
+            }
+            else {
+              itemId = event.target.getAttributeNode("id").value;
+            }
+            console.log(`${boardName} #${itemId} was clicked!`);
+          });
+        })
+      }
+
+    })("searchBtn", "keyword", "results",
+      [{ name: "items", data: items }, { name: "boards", data: boards }]);
+
+  </script>
+
+</body>
+
+</html>
